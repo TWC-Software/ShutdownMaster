@@ -17,14 +17,12 @@
 //   along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 /////////////////////////////////////////////////////////////////////////////////////////
 
-using ShutdownMaster.Win32;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Input;
 using System.Windows.Navigation;
+
 
 namespace ShutdownMaster
 {
@@ -66,35 +64,15 @@ namespace ShutdownMaster
 
             try
             {
-                UInt32 time = CalculateTime((DateTime)calendar.SelectedDate, (int)comboBoxHours.SelectedItem, (int)comboBoxMinutes.SelectedItem);
+                UInt32 time = Core.CalculateTime((DateTime)calendar.SelectedDate, (int)comboBoxHours.SelectedItem, (int)comboBoxMinutes.SelectedItem);
 
-                Win32Shutdown(time, (bool)checkBoxForceShutdown.IsChecked, (bool)checkBoxReboot.IsChecked);
+                Core.Win32Shutdown(time, (bool)checkBoxForceShutdown.IsChecked, (bool)checkBoxReboot.IsChecked);
                 MessageBox.Show("Success", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
-
-        private UInt32 CalculateTime(DateTime calendarDate, int hours, int minutes)
-        {
-
-            UInt32 shutdownSeconds = 0;
-            DateTime currentTime = DateTime.Now;
-
-            //Create a new DateTime with the given parameter
-            DateTime shutdownDate = new DateTime(calendarDate.Year, calendarDate.Month, calendarDate.Day, hours, minutes, 0);
-
-
-            //Calculate the milliseconds between the shutdown date and the current time
-            shutdownSeconds = Convert.ToUInt32(shutdownDate.Subtract(currentTime).TotalSeconds);
-
-            if (shutdownSeconds > NativeMethods.MAX_SHUTDOWN_TIMEOUT)
-                throw new Exception("Das gewählte Datum ist zu groß!");
-
-            //MessageBox.Show(shutdownSeconds.ToString());
-            return shutdownSeconds;
         }
 
 
@@ -108,9 +86,9 @@ namespace ShutdownMaster
 
             try
             {
-                Win32Shutdown(0, (bool)checkBoxForceShutdown.IsChecked, (bool)checkBoxReboot.IsChecked);
+                Core.Win32Shutdown(0, (bool)checkBoxForceShutdown.IsChecked, (bool)checkBoxReboot.IsChecked);
             }
-            catch (Win32Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -119,35 +97,17 @@ namespace ShutdownMaster
 
         //----------------------------------------------------------------------------------------------//
 
-        [Obsolete("Works but use Win32Shutdown instead", false)]
-        private bool CmdShutdown(long seconds, bool forceShutdown)
+
+        private void buttonAbortShutdown_Click(object sender, RoutedEventArgs e)
         {
-            ProcessStartInfo startInfo = new ProcessStartInfo("cmd.exe")
+            try
             {
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                // /c tells cmd that we want to execute the command that follows (and then exit)
-                Arguments = "/c shutdown /s /t " + seconds
-            };
-
-            if (forceShutdown)
-                startInfo.Arguments += " /f";
-
-            Process process = new Process();
-            process.StartInfo = startInfo;
-
-            process.Start();
-
-            string result = process.StandardOutput.ReadToEnd();
-            return string.IsNullOrWhiteSpace(result);
-        }
-
-        private void Win32Shutdown(UInt32 seconds, bool forceShutdown, bool rebootAfterShutdown)
-        {
-            if (!NativeMethods.InitiateSystemShutdown(NativeMethods.LOCAL_MACHINE, "Hi", seconds, forceShutdown,
-                 rebootAfterShutdown))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
+                Core.Win32AbortSystemShutdown();
+            }
+            catch (Win32Exception ex)
+            {
+                MessageBox.Show(ex.Message, "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
 
@@ -163,6 +123,10 @@ namespace ShutdownMaster
         {
             Process.Start(e.Uri.AbsoluteUri);
             e.Handled = true;
+        }
+
+        private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+        {
         }
     }
 }

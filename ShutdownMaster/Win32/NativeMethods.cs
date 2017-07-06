@@ -22,8 +22,11 @@ using System.Runtime.InteropServices;
 
 namespace ShutdownMaster.Win32
 {
-    public static class NativeMethods
+    internal static class NativeMethods
     {
+        public const string LOCAL_MACHINE = null;
+        public const UInt32 MAX_SHUTDOWN_TIMEOUT = 10 * 365 * 24 * 60 * 60;
+
         [DllImport(DLLFiles.ADVAPI32, EntryPoint = "InitiateSystemShutdownW", ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool InitiateSystemShutdown(
@@ -33,7 +36,9 @@ namespace ShutdownMaster.Win32
             bool bForceAppsClosed,
             bool bRebootAfterShutdown);
 
-        public const string LOCAL_MACHINE = null;
-        public const UInt32 MAX_SHUTDOWN_TIMEOUT = 10 * 365 * 24 * 60 * 60;
+        [DllImport(DLLFiles.ADVAPI32, EntryPoint = "AbortSystemShutdownW", ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AbortSystemShutdown(
+            string lpMachineName);
     }
 }
