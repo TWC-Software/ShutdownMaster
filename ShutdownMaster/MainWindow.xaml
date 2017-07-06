@@ -5,16 +5,23 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ShutdownMaster"
         mc:Ignorable="d"
-        Title="ShutdownMaster" Height="226" Width="334" ResizeMode="NoResize">
+        Title="ShutdownMaster BETA" Height="246.089" Width="363.506" ResizeMode="NoResize">
     <Grid>
-        <Calendar x:Name="calendar" HorizontalAlignment="Left" Margin="10,10,0,0" Height="168" VerticalAlignment="Top"/>
-
-        <ComboBox x:Name="comboBoxHours" HorizontalAlignment="Left" Margin="194,31,0,0" VerticalAlignment="Top" Width="45" IsReadOnly="True"/>
-        <Label x:Name="labelColon" Content=":" HorizontalAlignment="Left" Margin="241,27,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="comboBoxMinutes" HorizontalAlignment="Left" Margin="254,31,0,0" VerticalAlignment="Top" Width="45" IsReadOnly="True"/>
+        <Calendar x:Name="calendar" HorizontalAlignment="Left" Margin="10,10,0,0" Height="168" VerticalAlignment="Top" Loaded="Calendar_OnLoaded"/>
         <Button x:Name="buttonShutdown" Content="SHUTDOWN" HorizontalAlignment="Left" Margin="194,157,0,0" Width="122" Click="buttonShutdown_Click" Height="20" VerticalAlignment="Top"/>
         <Button x:Name="buttonInstantShutdown" Content="INSTANT SHUTDOWN" HorizontalAlignment="Left" Margin="194,132,0,0" Width="122" Click="buttonInstantShutdown_Click" Height="20" VerticalAlignment="Top"/>
-        <CheckBox x:Name="checkBoxForceShutdown" Content="Force shutdown" HorizontalAlignment="Left" Margin="202,112,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="label" Content="Hours / Minutes:" HorizontalAlignment="Left" Margin="189,5,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="checkBoxForceShutdown" Content="Force shutdown" HorizontalAlignment="Left" Margin="202,99,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="checkBoxReboot" Content="Reboot after shutdown" HorizontalAlignment="Left" Margin="202,79,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="labelCopyright" Content="Copyright (C) 2017 TWC Software / Mike Cremer" HorizontalAlignment="Left" Margin="10,191,0,0" VerticalAlignment="Top"/>
+        <GroupBox x:Name="groupBoxShutdownTime" Header="Hours / Minutes:" HorizontalAlignment="Left" Height="64" Margin="194,10,0,0" VerticalAlignment="Top" Width="126">
+            <Grid>
+                <ComboBox x:Name="comboBoxHours" HorizontalAlignment="Left" Margin="3,10,0,0" VerticalAlignment="Top" Width="45" IsReadOnly="True"/>
+                <ComboBox x:Name="comboBoxMinutes" HorizontalAlignment="Left" Margin="61,10,0,0" VerticalAlignment="Top" Width="45" IsReadOnly="True"/>
+                <Label x:Name="labelColon" Content=":" HorizontalAlignment="Left" Margin="48,6,0,0" VerticalAlignment="Top" RenderTransformOrigin="4.555,1.342"/>
+            </Grid>
+        </GroupBox>
+        <Label x:Name="labelGithub" HorizontalAlignment="Left" Margin="300,191,0,0" VerticalAlignment="Top">
+            <Hyperlink NavigateUri="https://github.com/TWC-Software/ShutdownMaster" RequestNavigate="Hyperlink_OnRequestNavigate">GitHub</Hyperlink>
+        </Label>
     </Grid>
 </Window>

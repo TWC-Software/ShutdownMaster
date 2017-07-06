@@ -18,9 +18,14 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
+using ShutdownMaster.Win32;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Input;
+using System.Windows.Navigation;
 
 namespace ShutdownMaster
 {
@@ -57,47 +62,37 @@ namespace ShutdownMaster
 
         private void buttonShutdown_Click(object sender, RoutedEventArgs e)
         {
-            if (calendar.SelectedDate == null || comboBoxHours.SelectedItem == null || comboBoxMinutes.SelectedItem == null || checkBoxForceShutdown.IsChecked == null)
+            if (calendar.SelectedDate == null || comboBoxHours.SelectedItem == null || comboBoxMinutes.SelectedItem == null || checkBoxForceShutdown.IsChecked == null || checkBoxReboot.IsChecked == null)
                 return;
 
-            long? time = CalculateTime((DateTime)calendar.SelectedDate, (int)comboBoxHours.SelectedItem, (int)comboBoxMinutes.SelectedItem);
-            if (time == null)
-                return;
-
-            if (CmdShutdown((long)time, (bool)checkBoxForceShutdown.IsChecked))
+            try
             {
-                MessageBox.Show("Erfolgreich!" + ((bool)checkBoxForceShutdown.IsChecked).ToString(), "INFORMATION", MessageBoxButton.OK, MessageBoxImage.Information);
+                UInt32 time = CalculateTime((DateTime)calendar.SelectedDate, (int)comboBoxHours.SelectedItem, (int)comboBoxMinutes.SelectedItem);
+
+                Win32Shutdown(time, (bool)checkBoxForceShutdown.IsChecked, (bool)checkBoxReboot.IsChecked);
+                MessageBox.Show("Success", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Nicht erfolgreich!", "FEHLER", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(ex.Message, "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private long? CalculateTime(DateTime calendarDate, int hours, int minutes)
+        private UInt32 CalculateTime(DateTime calendarDate, int hours, int minutes)
         {
-            long shutdownSeconds = 0;
+
+            UInt32 shutdownSeconds = 0;
             DateTime currentTime = DateTime.Now;
 
             //Create a new DateTime with the given parameter
             DateTime shutdownDate = new DateTime(calendarDate.Year, calendarDate.Month, calendarDate.Day, hours, minutes, 0);
 
-            try
-            {
-                //Calculate the milliseconds between the shutdown date and the current time
-                shutdownSeconds = (long)shutdownDate.Subtract(currentTime).TotalSeconds;
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                MessageBox.Show("Das gewählte Datum ist zu groß!", "FEHLER", MessageBoxButton.OK, MessageBoxImage.Error);
-                return null;
-            }
 
-            if (shutdownSeconds < 0)
-            {
-                MessageBox.Show("Das gewählte Datum ist unmöglich!", "FEHLER", MessageBoxButton.OK, MessageBoxImage.Error);
-                return null;
-            }
+            //Calculate the milliseconds between the shutdown date and the current time
+            shutdownSeconds = Convert.ToUInt32(shutdownDate.Subtract(currentTime).TotalSeconds);
+
+            if (shutdownSeconds > NativeMethods.MAX_SHUTDOWN_TIMEOUT)
+                throw new Exception("Das gewählte Datum ist zu groß!");
 
             //MessageBox.Show(shutdownSeconds.ToString());
             return shutdownSeconds;
@@ -109,16 +104,23 @@ namespace ShutdownMaster
 
         private void buttonInstantShutdown_Click(object sender, RoutedEventArgs e)
         {
-            if (checkBoxForceShutdown.IsChecked == null)
+            if (checkBoxForceShutdown.IsChecked == null || checkBoxReboot.IsChecked == null)
                 return;
 
-            CmdShutdown(0, (bool)checkBoxForceShutdown.IsChecked);
+            try
+            {
+                Win32Shutdown(0, (bool)checkBoxForceShutdown.IsChecked, (bool)checkBoxReboot.IsChecked);
+            }
+            catch (Win32Exception ex)
+            {
+                MessageBox.Show(ex.Message, "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
 
         //----------------------------------------------------------------------------------------------//
 
-
+        [Obsolete("Works but use Win32Shutdown instead", false)]
         private bool CmdShutdown(long seconds, bool forceShutdown)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo("cmd.exe")
@@ -140,6 +142,28 @@ namespace ShutdownMaster
 
             string result = process.StandardOutput.ReadToEnd();
             return string.IsNullOrWhiteSpace(result);
+        }
+
+        private void Win32Shutdown(UInt32 seconds, bool forceShutdown, bool rebootAfterShutdown)
+        {
+            if (!NativeMethods.InitiateSystemShutdown(NativeMethods.LOCAL_MACHINE, "Hi", seconds, forceShutdown,
+                 rebootAfterShutdown))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+
+
+        //----------------------------------------------------------------------------------------------//
+
+        private void Calendar_OnLoaded(object sender, RoutedEventArgs e)
+        {
+            //Blocks all dates in past
+            calendar.BlackoutDates.AddDatesInPast();
+        }
+
+        private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Process.Start(e.Uri.AbsoluteUri);
+            e.Handled = true;
         }
     }
 }

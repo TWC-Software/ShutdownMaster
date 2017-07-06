@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTitle("ShutdownMaster")]
 [assembly: AssemblyDescription("Shutdown the computer in a given time")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("TWC-Software")]
+[assembly: AssemblyCompany("TWC Software")]
 [assembly: AssemblyProduct("ShutdownMaster")]
-[assembly: AssemblyCopyright("Copyright ©  TWC-Software 2017")]
+[assembly: AssemblyCopyright("Copyright © 2017 TWC Software / Mike Cremer")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
